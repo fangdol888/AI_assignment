@@ -33,20 +33,19 @@ class layer():
             error.append(((y- self.output(x))**2).mean())
         return np.array(error)
     
-    def grad_loss(self, x, y, w):
-        return -((y-self.sigmoid(w.dot(x))).dot(x.T))
+    def grad_loss(self, x, y):
+        return -((y-self.output(x)).dot(x.T))
     
     def gradient_descent(self, init_x, y,lr=0.01, step_num=100):
         for num in range(step_num):
-            x = init_x    
-    
-            de = self.grad_loss(x, y, self.w[1])
+            x = init_x
+            error = self.loss(x,y)
+            print(error)
+            
+            de = self.grad_loss(x, y)
             self.w[1] -= lr * de
-            
-            dx = np.dot(de, self.w[0].T)
-            dw = np.dot(x.T, de)
-            
-            self.w[0] -= lr * dx
+            de = np.dot(de, self.w[0].T)
+            self.w[0] -= lr * de
 
          
 
@@ -63,7 +62,7 @@ label = np.array(target)
 
 l = layer(weight_matrixs)
 o = l.output(input_matrix)
-l.gradient_descent(input_matrix, label, lr=0.1, step_num= 10000)
+l.gradient_descent(input_matrix, label, lr=0.01, step_num= 10000)
 output = l.output(input_matrix)
 
 print(output)
