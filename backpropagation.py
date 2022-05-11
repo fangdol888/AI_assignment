@@ -5,8 +5,6 @@ import numpy as np
 class layer(): 
     def __init__(self, w):
         self.w = w
-        self.U = []
-        self.Z = []
         
     def output(self , inp):
         out = inp
@@ -16,9 +14,7 @@ class layer():
     
     def forward(self, in_matrix, weight):
         out = weight.dot(in_matrix) # O = W I
-        self.U.append(out)
         out = self.sigmoid(out) #Applying sigmoid for matrix
-        self.Z.append(out)
         return np.array(out)
     
     def sigmoid(self, x):
@@ -39,15 +35,10 @@ class layer():
     def gradient_descent(self, init_x, y,lr=0.01, step_num=100):
         for num in range(step_num):
             x = init_x
-            error = self.loss(x,y)
-            print(error)
-            
             de = self.grad_loss(x, y)
             self.w[1] -= lr * de
             de = np.dot(de, self.w[0].T)
             self.w[0] -= lr * de
-
-         
 
 
 #Example
@@ -62,10 +53,8 @@ label = np.array(target)
 
 l = layer(weight_matrixs)
 o = l.output(input_matrix)
-l.gradient_descent(input_matrix, label, lr=0.01, step_num= 10000)
+l.gradient_descent(input_matrix, label, lr=0.05, step_num= 1000)
 output = l.output(input_matrix)
 
 print(output)
 print(label)
-
-
