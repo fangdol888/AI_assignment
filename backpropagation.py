@@ -39,9 +39,7 @@ class layer():
     def gradient_descent(self, init_x, y,lr=0.01, step_num=100):
         for num in range(step_num):
             x = init_x    
-            error = self.loss(x,y)
-            print(error)
-            '''
+    
             de = self.grad_loss(x, y, self.w[1])
             self.w[1] -= lr * de
             
@@ -49,26 +47,8 @@ class layer():
             dw = np.dot(x.T, de)
             
             self.w[0] -= lr * dx
-            '''
-            self.back_propagate(x, y, lr)
-        
-    def back_propagate(self, xs, ys, lr=0.01):
-    
-        pred_ys = self.output(xs)
-        self.D = []
 
-        for i in reversed(range(0,len(self.w))):
-            if i == len(self.w) - 1:
-                d = pred_ys - ys
-            else:
-                d = self.grad_sigmoid(self.U[i])*(self.D[-1].dot(self.w[i+1].T))
-
-            dW = self.Z[i-1].T.dot(d)
-
-            self.w[i] -= lr*dW
-
-            self.D.append(d)
-        return
+         
 
 
 #Example
