@@ -1,97 +1,75 @@
 import math as m
+from tkinter import W
+import numpy as np
 
-class Matrix():
-    def __init__(self, input_matrix):
-       self.matrix = input_matrix
-       self.shape = (len(input_matrix), len(input_matrix[0]))
-       self.row = self.shape[0]
-       self.col = self.shape[1]
-    
-    def matrix_multiplication(self, sec_matrix): #matrix
-        res =[] #결과 저장용
-        for row in self.matrix: #first matrix row 추출
-            tmp_row = [] #row 임시저장용
-            for col in range(0, sec_matrix.col): # second matrix column 추출
-                tmp = 0
-                for idx in range(0, len(row)): #각 요소 곱하기
-                    tmp += row[idx] * sec_matrix.matrix[idx][col]
-                tmp_row.append(tmp) #1 row completed
-            res.append(tmp_row) # append completed row
-        return Matrix(res)
-    
-    def print(self):
-        m = [list(map(self.format, row)) for row in self.matrix]
-        print(m)
-    def nprint(self):
-        print(self.matrix)
-        
-    def format(self, value):
-        return float("%0.3f" % value)
-    
-    def transpose(self):
-        m = []
-        for row in range(len(self.matrix[0])):
-            tmp = []
-            for col in range(len(self.matrix)):
-                tmp.append(self.matrix[col][row])
-            m.append(tmp)
-        return Matrix(m)
-        
 class layer(): 
-    def __init__(self, weight_matrixs):
-        self.weights = weight_matrixs
+    def __init__(self, w):
+        self.w = w
+        self.U = []
+        self.Z = []
         
-    def output(self , out):
-        for weight in self.weights:
+    def output(self , inp):
+        out = inp
+        for weight in self.w:
             out = self.forward(out, weight)
-        return out #Matrix class
-
-    def precised_forward(self,in_matrix,weight):
-        for weight in self.weights:
-            in_matrix = weight.matrix_multiplication(in_matrix)
-        return in_matrix
+        return out 
     
     def forward(self, in_matrix, weight):
-        out = weight.matrix_multiplication(in_matrix) # O = W I
-        out = self.matrix_sigmoid(out) #Applying sigmoid for matrix
-        return out #Matrix class
-        
-    def matrix_sigmoid(self, mat):
-        m = [list(map(self.sigmoid, row)) for row in mat.matrix]
-        return Matrix(m)
+        out = weight.dot(in_matrix) # O = W I
+        self.U.append(out)
+        out = self.sigmoid(out) #Applying sigmoid for matrix
+        self.Z.append(out)
+        return np.array(out)
     
     def sigmoid(self, x):
-        return 1 / (1+ m.exp(-x))
+        return 1 / (1+ np.exp(-x))
     
-    def learn(self, i, label, learning_rate=0.001, repeat=1000):
-        for x in range(repeat):
+    def grad_sigmoid(self, x):
+        return self.sigmoid(x)*self.sigmoid(1-x)
+        
+    def loss(self, x, y):
+        error = []
+        for weight in self.w:
+            error.append(((y- self.output(x))**2).mean())
+        return np.array(error)
+    
+    def grad_loss(self, x, y, w):
+        return -((y-self.sigmoid(w.dot(x))).dot(x.T))
+    
+    def gradient_descent(self, init_x, y,lr=0.01, step_num=100):
+        for num in range(step_num):
+            x = init_x    
+            error = self.loss(x,y)
+            print(error)
+            '''
+            de = self.grad_loss(x, y, self.w[1])
+            self.w[1] -= lr * de
             
-            error = self.error(i, label) # output error
-            for idx in range(len(self.weights)-1,-1,-1):
-                weight = self.weights[idx]  #각 weight 뒤에서부터 가져오기(matrix)
-                error = self.back(weight ,error) #뒤로 한칸 옮겨서 error 계산
-                sum_weight = [sum(x) for x in weight.transpose().matrix]
-          
-                
-                self.weights[idx] = weight
-
+            dx = np.dot(de, self.w[0].T)
+            dw = np.dot(x.T, de)
+            
+            self.w[0] -= lr * dx
+            '''
+            self.back_propagate(x, y, lr)
         
-    def back(self, weight, error):
-        return weight.transpose().matrix_multiplication(error)
-        
+    def back_propagate(self, xs, ys, lr=0.01):
     
-    def error(self, in_matrix , label): 
-        errors = []
-        output = self.output(in_matrix);
-        
-        for row in range(len(output.matrix)):
-            tmp = []
-            for col in range(len(output.matrix[0])):
-                tmp.append ((label.matrix[row][col] - output.matrix[row][col])**2)
-            errors.append(tmp)
-       
-        return Matrix(errors)
-        
+        pred_ys = self.output(xs)
+        self.D = []
+
+        for i in reversed(range(0,len(self.w))):
+            if i == len(self.w) - 1:
+                d = pred_ys - ys
+            else:
+                d = self.grad_sigmoid(self.U[i])*(self.D[-1].dot(self.w[i+1].T))
+
+            dW = self.Z[i-1].T.dot(d)
+
+            self.w[i] -= lr*dW
+
+            self.D.append(d)
+        return
+
 
 #Example
 i =[[0.9], [0.1], [0.8]]
@@ -99,14 +77,16 @@ w_ih = [[0.9,0.3,0.4],[0.2,0.8,0.2],[0.1,0.5,0.6]] # input -> hidden weight
 w_ho = [[0.3,0.7,0.5],[0.6,0.5,0.2],[0.8,0.1,0.9]] # hidden -> output  weight
 target = [[0.6],[0.8],[0.5]]
 
-input_matrix = Matrix(i)
-weight_matrixs = [Matrix(w_ih), Matrix(w_ho)]
-label = Matrix(target)
+input_matrix = np.array(i)
+weight_matrixs = [np.array(w_ih), np.array(w_ho)]
+label = np.array(target)
 
 l = layer(weight_matrixs)
 o = l.output(input_matrix)
-l.learn(input_matrix, label, learning_rate=0.5, repeat= 10000)
+l.gradient_descent(input_matrix, label, lr=0.1, step_num= 10000)
 output = l.output(input_matrix)
-o.print()
-output.print()
+
+print(output)
+print(label)
+
 
