@@ -1,13 +1,15 @@
 import math as m
 import numpy as np
 
-class layer(): 
+class layer():
     def __init__(self, w):
         self.w = w
+        self.o = []
         
     def output(self , inp):
         out = inp
         for weight in self.w:
+            self.o.append(out);
             out = self.forward(out, weight)
         return out 
     
@@ -28,17 +30,17 @@ class layer():
             error.append(((y- self.output(x))**2).mean())
         return np.array(error)
     
-    def grad_loss(self, x, y):
-        return -((y-self.output(x)).dot(x.T))
-    
-    def gradient_descent(self, init_x, y,lr=0.01, step_num=100):
+    def get_dw(self,x, y, lr=0.01, step_num=100):
         for num in range(step_num):
-            x = init_x
-            de = self.grad_loss(x, y)
-            self.w[1] -= lr * de
-            de = np.dot(de, self.w[0].T)
-            self.w[0] -= lr * de
-
+            e = y - self.output(x);
+            for layer_num in range(len(self.w)-1, 0, -1):
+                s = self.sigmoid(self.o[layer_num]) 
+                dw = -e.dot((s*(1-s)).T)*o[layer_num-1]
+                self.w[layer_num] -= lr * dw
+                e = self.w[layer_num].T.dot(e)
+                self.output(x)
+            
+                    
 
 #Example
 i =[[0.9], [0.1], [0.8]]
@@ -52,8 +54,9 @@ label = np.array(target)
 
 l = layer(weight_matrixs)
 o = l.output(input_matrix)
-l.gradient_descent(input_matrix, label, lr=0.05, step_num= 1000)
-output = l.output(input_matrix)
 
+l.get_dw(input_matrix, label, lr=0.1, step_num= 1000)
+
+output = l.output(input_matrix)
 print(output)
 print(label)
