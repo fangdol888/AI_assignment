@@ -1,4 +1,3 @@
-import math as m
 import numpy as np
 
 class layer():
@@ -21,15 +20,6 @@ class layer():
     def sigmoid(self, x):
         return 1 / (1+ np.exp(-x))
     
-    def grad_sigmoid(self, x):
-        return self.sigmoid(x)*self.sigmoid(1-x)
-        
-    def loss(self, x, y):
-        error = []
-        for weight in self.w:
-            error.append(((y- self.output(x))**2).mean())
-        return np.array(error)
-    
     def get_dw(self,x, y, lr=0.01, step_num=100):
         for num in range(step_num):
             e = y - self.output(x);
@@ -41,7 +31,6 @@ class layer():
                 self.output(x)
             
                     
-
 #Example
 i =[[0.9], [0.1], [0.8]]
 w_ih = [[0.9,0.3,0.4],[0.2,0.8,0.2],[0.1,0.5,0.6]] # input -> hidden weight
