@@ -1,5 +1,4 @@
 import math as m
-from tkinter import W
 import numpy as np
 
 class layer(): 
